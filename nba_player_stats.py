@@ -29,39 +29,50 @@ def get_nba_player_stats(season='2024-25', season_type='Regular Season', league_
     df_relevant['RPG'] = (df_relevant['REB'] / df_relevant['GP']).round(1)
     df_relevant['SPG'] = (df_relevant['STL'] / df_relevant['GP']).round(1)
     df_relevant['BPG'] = (df_relevant['BLK'] / df_relevant['GP']).round(1)
-    df_relevant['TPG'] = (df_relevant['TOV'] / df_relevant['GP']).round(1)
+    df_relevant['TOVPG'] = (df_relevant['TOV'] / df_relevant['GP']).round(1)
     df_relevant['PFPG'] = (df_relevant['PF'] / df_relevant['GP']).round(1)
     df_relevant['MPG'] = (df_relevant['MIN'] / df_relevant['GP']).round(1)
     df_relevant['FPPG'] = (df_relevant['NBA_FANTASY_PTS'] / df_relevant['GP']).round(1)
-    df_relevant['FG3PG'] = (df_relevant['FG3M'] / df_relevant['GP']).round(1)
+    df_relevant['FG3MPG'] = (df_relevant['FG3M'] / df_relevant['GP']).round(1)
     df_relevant['FG3APG'] = (df_relevant['FG3A'] / df_relevant['GP']).round(1)
-    df_relevant['FTPG'] = (df_relevant['FTM'] / df_relevant['GP']).round(1)
+    df_relevant['FTMPG'] = (df_relevant['FTM'] / df_relevant['GP']).round(1)
     df_relevant['FTAPG'] = (df_relevant['FTA'] / df_relevant['GP']).round(1)
-    df_relevant['FGPG'] = (df_relevant['FGM'] / df_relevant['GP']).round(1)
+    df_relevant['FGMPG'] = (df_relevant['FGM'] / df_relevant['GP']).round(1)
     df_relevant['FGAPG'] = (df_relevant['FGA'] / df_relevant['GP']).round(1)
 
-    # Get positional information for each player and add it to df_relevant
+    # Get common info for each player and add it to df_relevant
     positions = []
-    print("Fetching player positions using player IDs...")
+    countries = []
+    team_names = []
+    print("Fetching player positions and their country using player IDs...")
     for i, row in df_relevant.iterrows():
         player_id = row['PLAYER_ID']
         try:
             common_player_info = commonplayerinfo.CommonPlayerInfo(player_id=player_id, league_id_nullable=league_id_nullable)
             df_common = common_player_info.get_data_frames()[0]
             position = df_common.loc[0, 'POSITION']
+            country = df_common.loc[0, 'COUNTRY']
+            team_name = df_common.loc[0, 'TEAM_NAME']
             positions.append(position)
+            countries.append(country)
+            team_names.append(team_name)
         except:
             positions.append('N/A')
+            countries.append('N/A')
+            team_names.append('N/A')
         time.sleep(1)
         if i % 100 == 0:
             print(f"Processed {i} player's positions...")
 
     df_relevant['POS'] = positions
+    df_relevant['COUNTRY'] = countries
+    df_relevant['TEAM_NAME'] = team_names
 
     # Now we can drop the original columns that were used for calculations and keep only the relevant ones
     df_relevant = df_relevant[[
-        'PLAYER_NAME', 'AGE', 'TEAM_ABBREVIATION', 'POS', 'GP', 'MPG', 'FGPG', 'FGAPG', 'FG_PCT', 'FG3PG', 'FG3APG', 'FG3_PCT',
-        'FTPG', 'FTAPG', 'FT_PCT', 'ORPG', 'DRPG', 'RPG', 'APG', 'SPG', 'BPG', 'TPG', 'PPG', 'PFPG', 'FPPG', 'DD2', 'TD3'
+        'PLAYER_NAME', 'AGE', 'POS', 'GP', 'MPG', 'FGMPG', 'FGAPG', 'FG_PCT', 'FG3MPG', 'FG3APG', 'FG3_PCT',
+        'FTMPG', 'FTAPG', 'FT_PCT', 'ORPG', 'DRPG', 'RPG', 'APG', 'SPG', 'BPG', 'TOVPG', 'PPG', 'PFPG', 'FPPG',
+        'DD2', 'TD3', 'COUNTRY', 'TEAM_NAME'
     ]]
     
     # Save to CSV
